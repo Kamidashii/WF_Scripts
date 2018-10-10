@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public class ActiveObject : MonoBehaviour
 {
@@ -16,20 +17,26 @@ public class ActiveObject : MonoBehaviour
     public int gems;
     public GameObject item;
     public bool isPick;
-
-    public int count = 0;
-
+    
     public bool isOpen = true;
+
+    
+    [Serializable]
+    public class Data
+    {
+        public int count = 0;
+    }
+    public Data data=new Data();
 
     public void Take()
     {
         if (isOpen)
         {
-            if (count == 0)
+            if (data.count == 0)
             {
                 FirstInter();
             }
-            else if (count == 1)
+            else if (data.count == 1)
             {
                 SecondInter();
             }
@@ -37,9 +44,9 @@ public class ActiveObject : MonoBehaviour
             {
                 SetRandReplic();
             }
-            if (count < int.MaxValue)
+            if (data.count < int.MaxValue)
             {
-                count++;
+                data.count++;
             }
         }
     }
@@ -72,7 +79,7 @@ public class ActiveObject : MonoBehaviour
     {
         if (randomReplicas.Length > 0)
         {
-            usingText = randomReplicas[Random.Range(0, randomReplicas.Length)];
+            usingText = randomReplicas[UnityEngine.Random.Range(0, randomReplicas.Length)];
         }
     }
 
@@ -80,7 +87,7 @@ public class ActiveObject : MonoBehaviour
     {
         if (randomReplicas.Length > 0)
         {
-            usingText = randomReplicas[Random.Range(0, randomReplicas.Length)];
+            usingText = randomReplicas[UnityEngine.Random.Range(0, randomReplicas.Length)];
             usingText=SetNewLines(usingText);
         }
         gems = 0;
@@ -102,11 +109,11 @@ public class ActiveObject : MonoBehaviour
     
     void Start()
     {
-        if (count == 0)
+        if (data.count == 0)
         {
             usingText = beforeText;
         }
-        else if (count == 1)
+        else if (data.count == 1)
         {
             SetDialog();
             hintText = "";

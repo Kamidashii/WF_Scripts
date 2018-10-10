@@ -87,9 +87,8 @@ public class GameControllerScript : MonoBehaviour
 
         SavePlayer();
         SaveBoss();
-
-        //SaveFridge();
-        BinarySaveFridge(fridge.data);
+        
+        SaveObjBin(fridge.data, FridgeSaveName);
 
         SaveInventory();
 
@@ -108,7 +107,7 @@ public class GameControllerScript : MonoBehaviour
                 var script = obj.GetComponent<ActiveObject>();
                 if (script != null)
                 {
-                    PlayerPrefs.SetInt(obj.name, script.count);
+                    SaveObjBin(obj.GetComponent<ActiveObject>().data, obj.name);
                 }
             }
         }
@@ -195,39 +194,39 @@ public class GameControllerScript : MonoBehaviour
         PlayerPrefs.SetInt(stopSaveName, (buttons.GetComponent<Btn_ExitScript>().stop) ? 1 : 0);
     }
 
-    void SaveFridge()
+    void SaveObjBin(object obj,string name)
     {
-        PlayerPrefs.SetInt(FridgeSaveName, (int)fridge.data.currentState);
-        PlayerPrefs.SetInt(FridgeItemSaveName, fridge.data.hasItem ? 1 : 0);
-    }
-
-    void BinarySaveFridge(object obj)
-    {
+        Debug.Log("name: " + name);
+        string ext = ".bs";
+        string path = Application.dataPath + "/" + name + ext;
         BinaryFormatter bf = new BinaryFormatter();
-        FileStream fs = new FileStream(Application.dataPath + "/SaveFridge.bs", FileMode.OpenOrCreate, FileAccess.Write);
+        if(File.Exists(path))
+        {
+            File.Delete(path);
+        }
+        FileStream fs = new FileStream(path, FileMode.CreateNew,FileAccess.Write);
         try
         {
             bf.Serialize(fs, obj);
             fs.Close();
         }
-        catch (Exception exc)
+        catch(Exception exc)
         {
-            if (File.Exists(fs.Name))
-            {
-                AppendLog(exc);
-                fs.Close();
-            }
+            AppendLog(exc);
+            fs.Close();
         }
     }
 
     void AppendLog(Exception exc)
     {
-        FileStream excFS = new FileStream(Application.dataPath + "/log.txt", FileMode.Append, FileAccess.Write);
-        using (StreamWriter writer = new StreamWriter(excFS))
+        using (FileStream excFS = new FileStream(Application.dataPath + "/log.txt", FileMode.Append, FileAccess.Write))
         {
+            using (StreamWriter writer = new StreamWriter(excFS))
+            {
 
-            string mess = DateTime.Now.ToShortDateString() + " "+DateTime.Now.ToShortTimeString()+ " : " + exc.Message + " \n";
-            writer.WriteLine(mess);
+                string mess = DateTime.Now.ToShortDateString() + " " + DateTime.Now.ToShortTimeString() + " : " + exc.Message + " \n";
+                writer.WriteLine(mess);
+            }
         }
     }
 
@@ -262,9 +261,8 @@ public class GameControllerScript : MonoBehaviour
             CameraToPlayer();
 
             LoadBullets();
-
-            //LoadFridge();
-            fridge.data = LoadBinaryFridge(ref fridge.data);
+            
+            fridge.data = LoadObjBin(ref fridge.data, FridgeSaveName);
 
             LoadPause();
 
@@ -282,7 +280,7 @@ public class GameControllerScript : MonoBehaviour
             var script = obj.GetComponent<ActiveObject>();
             if (script != null)
             {
-                script.count = PlayerPrefs.GetInt(obj.name);
+                obj.GetComponent<ActiveObject>().data= LoadObjBin(ref obj.GetComponent<ActiveObject>().data, obj.name);
             }
         }
     }
@@ -349,34 +347,30 @@ public class GameControllerScript : MonoBehaviour
         }
     }
 
-    T LoadBinaryFridge<T>(ref T obj)
+
+    T LoadObjBin<T>(ref T obj, string name)
     {
+        string ext = ".bs";
         BinaryFormatter bf = new BinaryFormatter();
-        if (File.Exists(Application.dataPath + "/SaveFridge.bs"))
+        if (File.Exists(Application.dataPath + "/" + name + ext))
         {
-            Debug.Log("Exist");
-            FileStream fs = new FileStream(Application.dataPath + "/SaveFridge.bs", FileMode.Open,FileAccess.Read);
-            try
+            using (FileStream fs = new FileStream(Application.dataPath + "/" + name + ext, FileMode.Open, FileAccess.Read))
             {
-                obj = (T)bf.Deserialize(fs);
-                fs.Close();
-            }
-            catch (Exception exc)
-            {
-                AppendLog(exc);
-                fs.Close();
+                try
+                {
+                    obj = (T)bf.Deserialize(fs);
+                    fs.Close();
+                }
+                catch (Exception exc)
+                {
+                    AppendLog(exc);
+                    fs.Close();
+                }
             }
         }
         return obj;
     }
-
-    void LoadFridge()
-    {
-        fridge.data.currentState = (FridgeScript.State)PlayerPrefs.GetInt(FridgeSaveName);
-        fridge.data.hasItem = (PlayerPrefs.GetInt(FridgeItemSaveName) == 0) ? false : true;
-        fridge.CheckCurrentState();
-    }
-
+    
     void LoadItems()
     {
         int count = PlayerPrefs.GetInt(countItemsSaveName);
@@ -427,8 +421,6 @@ public class GameControllerScript : MonoBehaviour
     }
     void Start()
     {
-
-
         if (PlayerPrefs.HasKey(playerHealthSaveName))
         {
             LoadSave();

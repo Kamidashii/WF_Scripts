@@ -292,7 +292,7 @@ public class playerController : MonoBehaviour
         gameController.key = key;
         dialogText.GetComponent<Text>().text = activeObject.usingText;
         currentText = dialogText.GetComponent<Text>().text;
-        if (activeObject.count == 0)
+        if (activeObject.data.count == 0)
         {
             hintText.text = activeObject.hintText;
             currentHint = hintText.text;
@@ -343,7 +343,7 @@ public class playerController : MonoBehaviour
 
         else if (nearGemsObject)
         {
-            if (activeObject.isPick && activeObject.count > 0)
+            if (activeObject.isPick && activeObject.data.count > 0)
             {
                 inventory.Add_Item(activeObject.item);
             }
@@ -355,14 +355,14 @@ public class playerController : MonoBehaviour
             {
                 dialogText.GetComponent<DialogTextScript>().SetText(activeObject.usingText);
                 hintText.text = activeObject.hintText;
-                if (activeObject.tag == "Book" && activeObject.count > 0)
+                if (activeObject.tag == "Book" && activeObject.data.count > 0)
                 {
                     dialogText.GetComponent<DialogTextScript>().paper.SetActive(true);
                 }
 
-                if (activeObject.count > 0)
+                if (activeObject.data.count > 0)
                 {
-                    if (activeObject.count < 2)
+                    if (activeObject.data.count < 2)
                     {
                         gameController.gems += activeObject.gems;
 
